@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vitality</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface-2: #1c1c1c;
+    --border: #262626;
+    --border-2: #333;
+    --text: #ededed;
+    --muted: #8a8a8a;
+    --accent: #e5e5e5;
+    --green: #4ade80;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --train: #60a5fa;
+    --diet: #fbbf24;
+    --sleep: #c084fc;
+    --gear: #f87171;
+    --pink: #ec4899;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 20px 48px; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; gap: 16px; flex-wrap: wrap; }
+  .title { font-size: 13px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .subtitle { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .reset {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    padding: 8px 14px; border-radius: 8px; font-size: 11px; cursor: pointer;
+    font-family: inherit; letter-spacing: 0.05em;
+  }
+  .reset:hover { color: var(--text); border-color: var(--text); }
+
+  .strip {
+    display: grid;
+    grid-template-columns: 0.8fr 0.8fr 1fr 1fr 0.9fr 1.1fr auto;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  @media (max-width: 820px) { .strip { grid-template-columns: 1fr 1fr 1fr; } }
+  .height-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .height-row select {
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .height-row select:disabled { opacity: 0.6; cursor: not-allowed; }
+  .height-row .k { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .attractiveness-emoji { font-size: 16px; margin-left: 4px; }
+  .stat .k { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .stat .v { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .stat .v.big { font-size: 22px; }
+  .stat .v.pos { color: var(--green); }
+  .stat .v.danger { color: var(--red); }
+  .stat .v.warn { color: var(--amber); }
+  .stat .sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .tick-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); opacity: 0.25; transition: opacity 0.1s, box-shadow 0.1s; justify-self: end; }
+  .tick-dot.on { opacity: 1; box-shadow: 0 0 14px var(--green); }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .pause {
+    background: var(--surface-2); border: 1px solid var(--border-2); color: var(--text);
+    padding: 10px 20px; border-radius: 8px; font-family: inherit; font-size: 13px;
+    font-weight: 500; cursor: pointer; min-width: 90px;
+  }
+  .pause:hover:not(:disabled) { background: #2a2a2a; }
+  .pause.paused { background: var(--accent); color: #0a0a0a; }
+  .pause.done { background: var(--surface-2); color: var(--muted); cursor: not-allowed; }
+
+  .speed {
+    display: flex;
+    gap: 2px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .speed button {
+    background: none; border: none; color: var(--muted);
+    padding: 7px 10px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; cursor: pointer; font-weight: 500;
+  }
+  .speed button.on { background: var(--accent); color: #0a0a0a; font-weight: 600; }
+  .speed button:not(.on):hover { color: var(--text); }
+
+  .chart-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-bottom: 12px;
+  }
+  .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .chart-title { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .legend { display: flex; gap: 12px; font-size: 11px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+  #chart { width: 100%; height: 180px; display: block; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px)  { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .card-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px;
+  }
+  .card-tag {
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  }
+  .card-name { font-size: 15px; font-weight: 600; margin-top: 2px; }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .card-emoji { font-size: 22px; }
+
+  .choice-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .choice-row.six {
+    grid-template-columns: 1fr 1fr;
+  }
+  .choice {
+    background: var(--surface-2);
+    border: 1px solid var(--border-2);
+    color: var(--text);
+    padding: 8px 6px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.3;
+    transition: background 0.1s, border-color 0.1s;
+    min-height: 48px;
+  }
+  .choice:hover:not(.on) { background: #2a2a2a; }
+  .choice.on {
+    background: var(--accent);
+    color: #0a0a0a;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .choice.danger.on { background: var(--red); border-color: var(--red); color: #0a0a0a; }
+  .choice-label { display: block; font-weight: 600; margin-bottom: 2px; }
+  .choice-sub { font-size: 9px; opacity: 0.75; }
+
+  .final-banner {
+    margin-top: 20px;
+    padding: 18px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .final-banner.died { border-color: var(--red); }
+  .final-banner .label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .final-banner.died .label { color: var(--red); }
+  .final-banner .final { font-size: 26px; font-weight: 600; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .final-banner.died .final { color: var(--red); }
+  .final-banner .final-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  footer { margin-top: 20px; text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+
+  .vitality-bar {
+    height: 4px;
+    background: var(--surface-2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .vitality-bar .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red) 0%, var(--amber) 50%, var(--green) 100%);
+    transition: width 0.3s;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="title">Vitality</div>
+      <div class="subtitle">Every second = one year. Age 15 → 100. Build well. Live long.</div>
+    </div>
+    <button class="reset" onclick="resetGame()">Reset</button>
+  </header>
+
+  <div class="height-row">
+    <span class="k">Height</span>
+    <select id="height-select" onchange="setHeight(this.value)"></select>
+    <span id="height-note">Lock in before pressing Start</span>
+  </div>
+
+  <div class="strip">
+    <div class="stat">
+      <div class="k">Age</div>
+      <div class="v mono big" id="age">15</div>
+    </div>
+    <div class="stat">
+      <div class="k">FFMI</div>
+      <div class="v mono" id="ffmi">16.0</div>
+      <div class="sub" id="ffmi-sub">below avg</div>
+    </div>
+    <div class="stat">
+      <div class="k">Body weight</div>
+      <div class="v mono" id="weight">60 kg</div>
+      <div class="sub mono" id="lbm-sub">LBM 50 kg</div>
+    </div>
+    <div class="stat">
+      <div class="k">Body fat</div>
+      <div class="v mono" id="bodyfat">17 %</div>
+    </div>
+    <div class="stat">
+      <div class="k">Vitality</div>
+      <div class="v mono pos" id="vitality">100</div>
+      <div class="vitality-bar"><div class="fill" id="vitality-bar" style="width:100%;"></div></div>
+    </div>
+    <div class="stat">
+      <div class="k">Women notice</div>
+      <div class="v mono" id="attractiveness">—</div>
+      <div class="sub" id="attractiveness-sub">—</div>
+    </div>
+    <div class="tick-dot" id="tick"></div>
+  </div>
+
+  <div class="controls">
+    <button class="pause" id="pause-btn" onclick="togglePause()">Start</button>
+    <div class="speed" id="speed">
+      <button data-speed="1">1×</button>
+      <button data-speed="2">2×</button>
+      <button data-speed="10">10×</button>
+    </div>
+    <span style="font-size:11px;color:var(--muted);">Pick your approach · change anytime</span>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-head">
+      <div class="chart-title">FFMI &amp; vitality over time</div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--train)"></span>FFMI</span>
+        <span><span class="dot" style="background:var(--green)"></span>Vitality</span>
+        <span><span class="dot" style="background:var(--pink)"></span>Attraction</span>
+      </div>
+    </div>
+    <svg id="chart" viewBox="0 0 1000 250" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="final-banner" id="final-banner">
+    <div style="flex:1;">
+      <div class="label" id="final-label">You reached age 100</div>
+      <div class="final mono" id="final-headline">FFMI 24.3  ·  Vitality 68</div>
+      <div class="final-sub" id="final-sub"></div>
+      <div id="final-peak" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;"></div>
+    </div>
+    <button class="reset" onclick="resetGame()" style="padding:10px 18px;font-size:12px;">Try again</button>
+  </div>
+
+  <footer>
+    Save is automatic. FFMI 25 is the natural ceiling. Push past it only with gear — and gear kills.
+  </footer>
+</div>
+
+<script>
+// ---------- Config ----------
+const STORAGE_KEY = 'vitality-v3';
+const TICK_MS = 1000;
+const START_AGE = 15;
+const END_AGE = 100;
+const HEIGHT_MIN = 1.55;
+const HEIGHT_MAX = 2.05;
+const HEIGHT_DEFAULT = 1.80;
+const NATURAL_FFMI_CAP = 25;                   // FFMI ceiling without gear
+const GEAR_FFMI_CAP = 32;                      // hard physiological limit even on gear
+function baseMaxLbm(hM) { return NATURAL_FFMI_CAP * hM * hM; }
+function gearMaxLbm(hM) { return GEAR_FFMI_CAP * hM * hM; }
+
+const CHOICES = {
+  training: [
+    { id: 'none',      label: 'No training',     sub: 'rest and chill',          lbmFactor: 0.70, vit: -1 },
+    { id: 'intensity', label: 'High intensity',  sub: '2× / week, compound',     lbmFactor: 0.96, vit: 0 },   // caps around FFMI 23-24
+    { id: 'balanced',  label: 'Balanced',        sub: '4× / week, 1h',           lbmFactor: 1.00, vit: -1 },  // only reaches FFMI 25 after 10 perfect years
+    { id: 'volume',    label: 'High volume',     sub: '6× / week, 2h each',      lbmFactor: 1.00, vit: -3 },  // reaches 25 ONLY with perfect recovery; stagnates otherwise
+  ],
+  diet: [
+    { id: 'junk',  label: 'Junk food',    sub: 'fast food & soda',  bfTarget: 32, vit: -4 },
+    { id: 'mixed', label: 'Mixed',        sub: 'cook sometimes',    bfTarget: 20, vit: 0 },
+    { id: 'clean', label: 'Clean',        sub: 'whole foods, protein', bfTarget: 12, vit: 3 },
+  ],
+  sleep: [
+    { id: 'poor', label: '4-5 hours',  sub: 'late nights',    vit: -5, recovery: 0.5 },
+    { id: 'ok',   label: '6-7 hours',  sub: 'usually ok',     vit: 0,  recovery: 0.85 },
+    { id: 'good', label: '8+ hours',   sub: 'deep & regular', vit: 3,  recovery: 1.0 },
+  ],
+  gear: [
+    { id: 'none',  label: 'Natural',       sub: 'no gear',               boost: 1.0, risk: 0.0 },
+    { id: 'test',  label: 'Test only',     sub: 'mild cycle',            boost: 1.15, risk: 0.015 },
+    { id: 'heavy', label: 'Heavy stack',   sub: 'test + others, insulin', boost: 1.35, risk: 0.06 },
+  ],
+  // Bad lifestyle habits — multi-select. Stack as many as you want.
+  // Each adds its sleep + vitality + death-risk cost.
+  habits: [
+    { id: 'workaholic', label: 'Workaholic', sub: '70h weeks, stress', sleepPenalty: 1, vitPenalty: 2, deathRisk: 0.003 },
+    { id: 'party',    label: 'Party life',    sub: '3× / week clubs',   sleepPenalty: 2, vitPenalty: 3, deathRisk: 0.004 },
+    { id: 'drink',    label: 'Daily drink',   sub: 'wine + beer nightly', sleepPenalty: 1, vitPenalty: 4, deathRisk: 0.008 },
+    { id: 'smoke',    label: 'Smoker',        sub: 'pack a day',        sleepPenalty: 1, vitPenalty: 5, deathRisk: 0.012 },
+    { id: 'weed',     label: 'Daily weed',    sub: 'blazed every night', sleepPenalty: 1, vitPenalty: 2, deathRisk: 0.002 },
+  ],
+};
+
+// ---------- State ----------
+function defaultState() {
+  const h = HEIGHT_DEFAULT;
+  const lbm0 = 48;
+  return {
+    age: START_AGE,
+    started: false,
+    paused: false,
+    died: false,
+    diedCause: null,
+    heightM: h,
+    lbm: lbm0,
+    bodyFatPct: 17,
+    vitality: 100,
+    training: 'none',
+    diet: 'mixed',
+    sleep: 'ok',
+    gear: 'none',
+    gearYears: 0,
+    habits: [],   // multi-select — empty array means clean
+    speed: 1,
+    yearsAtPeak: 0,       // years with attraction ≥ 90
+    yearsMagnetic: 0,     // years with attraction ≥ 75
+    yearsAttracting: 0,   // years with attraction ≥ 55
+    peakAttr: 0,          // highest attraction ever reached
+    peakFfmi: 0,          // highest FFMI ever reached
+    perfectYears: 0,      // cumulative years of perfect balanced execution (unlocks FFMI 25)
+    history: [{ age: START_AGE, ffmi: lbm0 / (h*h), vitality: 100, attractiveness: 0 }],
+  };
+}
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const s = JSON.parse(raw);
+    if (typeof s.age !== 'number') return defaultState();
+    return Object.assign(defaultState(), s);
+  } catch { return defaultState(); }
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+function resetGame() {
+  if (!confirm('Reset the game?')) return;
+  state = defaultState();
+  saveState();
+  render();
+  renderSpeedButtons();
+  restartTick();
+}
+
+// ---------- Mechanics ----------
+
+// Age factor for muscle-building capacity (0..1).
+// Rises 15→22 (peak building), plateau to 30, then slow decline.
+function ageMuscleCapacity(age) {
+  if (age <= 15) return 0.75;
+  if (age < 22)  return 0.75 + (age - 15) * (0.25 / 7);  // 0.75 → 1.0
+  if (age < 30)  return 1.0;                              // plateau
+  if (age < 50)  return 1.0 - (age - 30) * 0.005;         // -0.5% / yr
+  if (age < 70)  return 0.90 - (age - 50) * 0.01;         // -1% / yr
+  return Math.max(0.55, 0.70 - (age - 70) * 0.01);        // -1% / yr, floor
+}
+
+// Effective recovery derived from sleep + stacked bad habits
+function currentRecovery() {
+  const sleep = CHOICES.sleep.find(x => x.id === state.sleep);
+  const activeHabits = (state.habits || []).map(id => CHOICES.habits.find(h => h.id === id)).filter(Boolean);
+  const sleepPenalty = activeHabits.reduce((s, h) => s + (h.sleepPenalty || 0), 0);
+  return Math.max(0.2, (sleep ? sleep.recovery : 0.85) - 0.08 * sleepPenalty);
+}
+
+// Current LBM ceiling given age + training + gear + height + recovery
+function lbmCeiling() {
+  const t = CHOICES.training.find(x => x.id === state.training);
+  const g = CHOICES.gear.find(x => x.id === state.gear);
+  const base = baseMaxLbm(state.heightM) * ageMuscleCapacity(state.age);
+  let factor = t.lbmFactor;
+
+  if (state.training === 'volume') {
+    // Volume stagnates without recovery. Only hits full 1.00 at ~perfect recovery.
+    // Linear ramp: recovery 0.5 → 0.78, recovery 0.85 → 0.92, recovery 1.0 → 1.00.
+    const r = currentRecovery();
+    factor = 0.70 + 0.30 * Math.min(1, Math.max(0, (r - 0.4) / 0.6));
+  } else if (state.training === 'balanced') {
+    // Balanced is the only natural path to FFMI 25, but only after 10 "perfect" years.
+    // Starts at FFMI 22 (0.88), climbs to 25 (1.00) across 10 years of clean execution.
+    const progression = Math.min(1, (state.perfectYears || 0) / 10);
+    factor = 0.88 + 0.12 * progression;
+  }
+  // Intensity stays at its fixed 0.96 (FFMI ~24 cap). None stays at 0.70.
+
+  const naturalCap = base * factor;
+  const gearedCap = Math.min(gearMaxLbm(state.heightM), naturalCap * g.boost);
+  const floor = 14 * state.heightM * state.heightM;
+  return Math.max(floor, gearedCap);
+}
+
+// Rate at which LBM moves toward its ceiling (gain or atrophy)
+function lbmRateOfChange() {
+  // Faster when young, slower when old
+  if (state.age < 22) return 0.25;
+  if (state.age < 30) return 0.15;
+  if (state.age < 50) return 0.08;
+  if (state.age < 70) return 0.05;
+  return 0.03;
+}
+
+// Body-fat moves toward its diet-driven target
+function bodyFatTarget() {
+  return CHOICES.diet.find(x => x.id === state.diet).bfTarget;
+}
+
+function ffmi(lbm) { return lbm / (state.heightM * state.heightM); }
+function bodyWeight() { return state.lbm / (1 - state.bodyFatPct / 100); }
+
+// Attractiveness (as perceived by women): peaks at FFMI 21-23, body fat 10-15%
+// Falls off below (soft) and above (scary). Returns 0-100.
+function attractiveness(f, bf) {
+  const ffmiTarget = 22;
+  // Gaussian-like bell around FFMI 22, falls off faster above (fear factor)
+  const dF = f - ffmiTarget;
+  let fScore;
+  if (dF <= 0) fScore = Math.max(0, 1 - Math.pow(dF / 7, 2));           // soft below
+  else         fScore = Math.max(0, 1 - Math.pow(dF / 3.5, 2));          // steeper above
+  if (f > 25) fScore *= Math.max(0, 1 - (f - 25) * 0.12);                // extra "scary" penalty past natural cap
+  // Body fat: peak at 12.5%, soft above, lean too far = unhealthy look below
+  const dBf = bf - 12.5;
+  const bfScore = Math.max(0, 1 - Math.pow(dBf / 11, 2));
+  return Math.round(fScore * bfScore * 100);
+}
+function attractivenessLabel(a, f) {
+  if (a < 15) return f > 26 ? 'scary · avoided' : 'invisible';
+  if (a < 35) return f > 25 ? 'intimidating' : 'overlooked';
+  if (a < 55) return 'noticed sometimes';
+  if (a < 75) return 'turning heads';
+  if (a < 90) return 'magnetic';
+  return 'peak attraction';
+}
+function attractivenessEmoji(a) {
+  if (a < 15) return '💔';
+  if (a < 35) return '😐';
+  if (a < 55) return '🙂';
+  if (a < 75) return '😍';
+  if (a < 90) return '🔥';
+  return '💘';
+}
+
+function ffmiLabel(f) {
+  if (f < 17) return 'below avg';
+  if (f < 19) return 'average';
+  if (f < 21) return 'athletic';
+  if (f < 23) return 'advanced';
+  if (f < 25) return 'elite natural';
+  if (f < 27) return 'suspicious';
+  return 'enhanced';
+}
+
+function isDone() { return state.died || state.age >= END_AGE; }
+
+// ---------- Render ----------
+function render() {
+  document.getElementById('age').textContent = Math.round(state.age);
+
+  const f = ffmi(state.lbm);
+  document.getElementById('ffmi').textContent = f.toFixed(1);
+  document.getElementById('ffmi-sub').textContent = ffmiLabel(f);
+
+  const bw = bodyWeight();
+  document.getElementById('weight').textContent = bw.toFixed(1) + ' kg';
+  document.getElementById('lbm-sub').textContent = `LBM ${state.lbm.toFixed(1)} kg`;
+
+  document.getElementById('bodyfat').textContent = state.bodyFatPct.toFixed(0) + ' %';
+
+  // Attractiveness
+  const a = attractiveness(f, state.bodyFatPct);
+  document.getElementById('attractiveness').textContent = a + ' ' + attractivenessEmoji(a);
+  document.getElementById('attractiveness-sub').textContent = attractivenessLabel(a, f);
+
+  // Height picker (lock after start)
+  const sel = document.getElementById('height-select');
+  if (sel && sel.options.length === 0) {
+    for (let cm = Math.round(HEIGHT_MIN * 100); cm <= Math.round(HEIGHT_MAX * 100); cm += 5) {
+      const m = cm / 100;
+      const opt = document.createElement('option');
+      opt.value = m.toFixed(2);
+      opt.textContent = `${cm} cm`;
+      sel.appendChild(opt);
+    }
+  }
+  if (sel) {
+    sel.value = state.heightM.toFixed(2);
+    sel.disabled = state.started;
+    document.getElementById('height-note').textContent = state.started
+      ? `Natural LBM cap for your height: ${baseMaxLbm(state.heightM).toFixed(0)} kg (FFMI 25)`
+      : 'Lock in before pressing Start';
+  }
+
+  const v = Math.max(0, state.vitality);
+  document.getElementById('vitality').textContent = Math.round(v);
+  const vEl = document.getElementById('vitality');
+  vEl.className = 'v mono ' + (v <= 30 ? 'danger' : v >= 80 ? 'pos' : 'warn');
+  document.getElementById('vitality-bar').style.width = Math.min(100, v) + '%';
+
+  // Pause / Start button
+  const btn = document.getElementById('pause-btn');
+  if (isDone()) {
+    btn.textContent = state.died ? 'Died' : 'Finished';
+    btn.className = 'pause done';
+    btn.disabled = true;
+  } else if (!state.started) {
+    btn.textContent = 'Start';
+    btn.className = 'pause paused';
+    btn.disabled = false;
+  } else {
+    btn.textContent = state.paused ? 'Play' : 'Pause';
+    btn.className = 'pause' + (state.paused ? ' paused' : '');
+    btn.disabled = false;
+  }
+
+  renderCards();
+  renderChart();
+  renderFinal();
+}
+
+function renderCards() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const cards = [
+    { key: 'training', emoji: '🏋️', tag: 'Movement',  name: 'Training',    sub: 'Build / lose muscle' },
+    { key: 'diet',     emoji: '🥗', tag: 'Nutrition', name: 'Diet',        sub: 'Set body-fat trajectory' },
+    { key: 'sleep',    emoji: '😴', tag: 'Recovery',  name: 'Sleep',       sub: 'Recovery rate + vitality' },
+    { key: 'gear',     emoji: '💉', tag: 'Chemistry', name: 'Gear',        sub: 'Push past natural, risk death' },
+    { key: 'habits',   emoji: '🍺', tag: 'Lifestyle', name: 'Bad habits',  sub: 'Workaholic / party / drink / smoke / weed' },
+  ];
+  for (const c of cards) {
+    const choices = CHOICES[c.key];
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const isHabits = c.key === 'habits';
+    const current = isHabits ? (state.habits || []) : state[c.key];
+    const choiceCount = isHabits ? choices.length + 1 : choices.length;  // +1 for Clean
+
+    let choicesHtml;
+    if (isHabits) {
+      const cleanOn = current.length === 0 ? 'on' : '';
+      choicesHtml = `
+        <button class="choice ${cleanOn}" onclick="clearHabits()">
+          <span class="choice-label">Clean</span>
+          <span class="choice-sub">no vices</span>
+        </button>
+        ${choices.map(ch => `
+          <button class="choice danger ${current.includes(ch.id) ? 'on' : ''}" data-habit="${ch.id}">
+            <span class="choice-label">${ch.label}</span>
+            <span class="choice-sub">${ch.sub}</span>
+          </button>
+        `).join('')}
+      `;
+    } else {
+      choicesHtml = choices.map(ch => `
+        <button class="choice ${c.key === 'gear' && ch.id !== 'none' ? 'danger' : ''} ${current === ch.id ? 'on' : ''}" data-k="${c.key}" data-id="${ch.id}">
+          <span class="choice-label">${ch.label}</span>
+          <span class="choice-sub">${ch.sub}</span>
+        </button>
+      `).join('');
+    }
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <div class="card-tag">${c.tag}</div>
+          <div class="card-name">${c.name}</div>
+          <div class="card-sub">${c.sub}${isHabits ? ' · pick as many as you want' : ''}</div>
+        </div>
+        <div class="card-emoji">${c.emoji}</div>
+      </div>
+      <div class="choice-row ${choiceCount > 3 ? 'six' : ''}">
+        ${choicesHtml}
+      </div>
+    `;
+    grid.appendChild(card);
+    card.querySelectorAll('button.choice[data-k]').forEach(b => {
+      b.onclick = () => setChoice(b.dataset.k, b.dataset.id);
+    });
+    card.querySelectorAll('button.choice[data-habit]').forEach(b => {
+      b.onclick = () => toggleHabit(b.dataset.habit);
+    });
+  }
+}
+
+function setChoice(key, id) {
+  if (isDone()) return;
+  state[key] = id;
+  saveState();
+  render();
+}
+
+function toggleHabit(id) {
+  if (isDone()) return;
+  if (!Array.isArray(state.habits)) state.habits = [];
+  const i = state.habits.indexOf(id);
+  if (i >= 0) state.habits.splice(i, 1);
+  else state.habits.push(id);
+  saveState();
+  render();
+}
+
+function clearHabits() {
+  if (isDone()) return;
+  state.habits = [];
+  saveState();
+  render();
+}
+
+function setHeight(v) {
+  if (state.started) return;
+  const h = Math.min(HEIGHT_MAX, Math.max(HEIGHT_MIN, parseFloat(v) || HEIGHT_DEFAULT));
+  state.heightM = h;
+  // Rescale starter LBM relative to new height so FFMI starts the same
+  state.lbm = 48 * (h / HEIGHT_DEFAULT);
+  state.history = [{ age: START_AGE, ffmi: state.lbm / (h*h), vitality: 100, attractiveness: attractiveness(state.lbm / (h*h), state.bodyFatPct) }];
+  saveState();
+  render();
+}
+
+function renderFinal() {
+  const banner = document.getElementById('final-banner');
+  if (!isDone()) { banner.style.display = 'none'; return; }
+  banner.style.display = 'flex';
+  const f = ffmi(state.lbm);
+  const bw = bodyWeight();
+  const a = attractiveness(f, state.bodyFatPct);
+  document.getElementById('final-headline').textContent =
+    `FFMI ${f.toFixed(1)}  ·  BW ${bw.toFixed(1)} kg  ·  BF ${state.bodyFatPct.toFixed(0)}%  ·  Vit ${Math.round(state.vitality)}  ·  Attr ${a} ${attractivenessEmoji(a)}`;
+  if (state.died) {
+    banner.classList.add('died');
+    document.getElementById('final-label').textContent = `You died at age ${Math.round(state.age)}`;
+    document.getElementById('final-sub').textContent = state.diedCause || '';
+  } else {
+    banner.classList.remove('died');
+    document.getElementById('final-label').textContent = 'You reached age 100';
+    document.getElementById('final-sub').textContent = ffmiLabel(f) + ' build · lived the whole run';
+  }
+
+  // Peak summary tiles
+  const peakEl = document.getElementById('final-peak');
+  if (peakEl) {
+    const yearsLived = Math.round(state.age) - START_AGE;
+    const tiles = [
+      { k: '💘 Peak attraction',   v: (state.yearsAtPeak || 0) + ' years', sub: 'score ≥ 90' },
+      { k: '🔥 Magnetic',          v: (state.yearsMagnetic || 0) + ' years', sub: 'score ≥ 75' },
+      { k: '😍 Turning heads',     v: (state.yearsAttracting || 0) + ' years', sub: 'score ≥ 55' },
+      { k: '🏔 Peak FFMI',         v: (state.peakFfmi || 0).toFixed(1), sub: ffmiLabel(state.peakFfmi || 0) },
+      { k: '✨ Perfect years',     v: (state.perfectYears || 0) + ' / 10', sub: 'balanced + clean + sleep + no vices' },
+      { k: 'Years lived',          v: yearsLived + ' / ' + (END_AGE - START_AGE), sub: state.died ? 'died early' : 'full life' },
+    ];
+    peakEl.innerHTML = tiles.map(t => `
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;">
+        <div style="font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">${t.k}</div>
+        <div class="mono" style="font-size:16px;font-weight:600;margin-top:2px;">${t.v}</div>
+        <div style="font-size:10px;color:var(--muted);">${t.sub}</div>
+      </div>
+    `).join('');
+  }
+}
+
+// ---------- Chart ----------
+function renderChart() {
+  const svg = document.getElementById('chart');
+  const h = state.history || [];
+  if (h.length < 2) { svg.innerHTML = ''; return; }
+  const W = 1000, H = 250, padL = 50, padR = 10, padT = 10, padB = 25;
+  const minAge = h[0].age;
+  const maxAge = h[h.length - 1].age;
+  const xSpan = Math.max(1, maxAge - minAge);
+  const ffmiMax = Math.max(32, ...h.map(p => p.ffmi));
+  const vitMax = 100;
+  const xScale = y => padL + ((y - minAge) / xSpan) * (W - padL - padR);
+  const yFfmi = f => padT + (1 - f / ffmiMax) * (H - padT - padB);
+  const yVit = v => padT + (1 - v / vitMax) * (H - padT - padB);
+
+  const ffmiPath = h.map((p, i) => (i === 0 ? 'M' : 'L') + xScale(p.age).toFixed(1) + ',' + yFfmi(p.ffmi).toFixed(1)).join('');
+  const vitPath = h.map((p, i) => (i === 0 ? 'M' : 'L') + xScale(p.age).toFixed(1) + ',' + yVit(p.vitality).toFixed(1)).join('');
+  const attrPath = h.map((p, i) => (i === 0 ? 'M' : 'L') + xScale(p.age).toFixed(1) + ',' + yVit(p.attractiveness || 0).toFixed(1)).join('');
+
+  // Y labels - FFMI side
+  const ffmiTicks = [];
+  for (let i = 0; i <= 4; i++) {
+    const v = (ffmiMax * i) / 4;
+    ffmiTicks.push({ y: yFfmi(v), label: v.toFixed(0) });
+  }
+  // X labels - age
+  const xTicks = [];
+  for (let i = 0; i <= 5; i++) {
+    const age = Math.round(minAge + (xSpan * i) / 5);
+    xTicks.push({ x: xScale(age), label: age });
+  }
+
+  // Reference line at FFMI 25 (natural cap)
+  const capY = yFfmi(25);
+
+  svg.innerHTML = `
+    ${ffmiTicks.map(t => `
+      <line x1="${padL}" x2="${W - padR}" y1="${t.y}" y2="${t.y}" stroke="#262626" stroke-width="1"/>
+      <text x="${padL - 6}" y="${t.y + 3}" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#8a8a8a">${t.label}</text>
+    `).join('')}
+    ${xTicks.map(t => `
+      <text x="${t.x}" y="${H - 8}" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8a8a8a">${t.label}</text>
+    `).join('')}
+    <line x1="${padL}" x2="${W - padR}" y1="${capY}" y2="${capY}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+    <text x="${W - padR - 4}" y="${capY - 4}" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="#fbbf24">natural cap 25</text>
+    <path d="${vitPath}" fill="none" stroke="#4ade80" stroke-width="2" opacity="0.6"/>
+    <path d="${attrPath}" fill="none" stroke="#ec4899" stroke-width="2" opacity="0.75"/>
+    <path d="${ffmiPath}" fill="none" stroke="#60a5fa" stroke-width="2"/>
+  `;
+}
+
+// ---------- Tick ----------
+function togglePause() {
+  if (isDone()) return;
+  if (!state.started) { state.started = true; state.paused = false; }
+  else state.paused = !state.paused;
+  saveState();
+  render();
+}
+
+const tickEl = document.getElementById('tick');
+let _timer = null;
+function restartTick() {
+  if (_timer) clearInterval(_timer);
+  const interval = TICK_MS / (state.speed || 1);
+  _timer = setInterval(runTick, interval);
+}
+function setSpeed(s) {
+  state.speed = s;
+  saveState();
+  renderSpeedButtons();
+  restartTick();
+}
+function renderSpeedButtons() {
+  for (const b of document.querySelectorAll('#speed button')) {
+    b.classList.toggle('on', +b.dataset.speed === (state.speed || 1));
+  }
+}
+function runTick() {
+  if (!state.started || state.paused || isDone()) return;
+
+  state.age += 1;
+
+  const sleep = CHOICES.sleep.find(x => x.id === state.sleep);
+  const train = CHOICES.training.find(x => x.id === state.training);
+  const diet = CHOICES.diet.find(x => x.id === state.diet);
+  const gear = CHOICES.gear.find(x => x.id === state.gear);
+  const activeHabits = (state.habits || []).map(id => CHOICES.habits.find(h => h.id === id)).filter(Boolean);
+
+  // Sum penalties across all stacked habits
+  const totalSleepPenalty = activeHabits.reduce((s, h) => s + (h.sleepPenalty || 0), 0);
+  const totalVitPenalty   = activeHabits.reduce((s, h) => s + (h.vitPenalty || 0), 0);
+  const totalDeathRisk    = activeHabits.reduce((s, h) => s + (h.deathRisk || 0), 0);
+
+  // Effective sleep recovery is degraded by stacked bad habits
+  const effectiveRecovery = Math.max(0.2, sleep.recovery - 0.08 * totalSleepPenalty);
+
+  // LBM: move toward age/training/gear-adjusted ceiling, modulated by effective recovery
+  const target = lbmCeiling();
+  const rate = lbmRateOfChange() * effectiveRecovery;
+  state.lbm += (target - state.lbm) * rate;
+  // Biological floor — adult never drops below FFMI 14 while alive
+  const minLbm = 14 * state.heightM * state.heightM;
+  if (state.lbm < minLbm) state.lbm = minLbm;
+
+  // Body fat: move toward diet target
+  state.bodyFatPct += (bodyFatTarget() - state.bodyFatPct) * 0.25;
+  state.bodyFatPct = Math.max(5, Math.min(45, state.bodyFatPct));
+
+  // Vitality: compound effect of all five pillars + age decay
+  let dV = (sleep.vit || 0) + (diet.vit || 0) + (train.vit || 0) - totalVitPenalty;
+  // Age-related decay accelerates past 40
+  const ageDecay = state.age < 40 ? 0.3 : 0.3 + (state.age - 40) * 0.08;
+  dV -= ageDecay;
+  // Extreme body-fat penalties
+  if (state.bodyFatPct > 30) dV -= 2;
+  if (state.bodyFatPct < 7)  dV -= 2;
+  // Gear vitality drag (while on it)
+  if (state.gear === 'test')  dV -= 1;
+  if (state.gear === 'heavy') dV -= 3;
+  state.vitality += dV;
+  if (state.vitality > 100) state.vitality = 100;
+
+  // Gear death risk
+  if (state.gear !== 'none') {
+    state.gearYears += 1;
+    // Risk scales with cumulative use
+    const yearRisk = gear.risk * (1 + state.gearYears / 10);
+    if (Math.random() < yearRisk) {
+      state.died = true;
+      state.diedCause = state.gear === 'heavy'
+        ? 'Heart attack from heavy stack. Years on gear caught up.'
+        : 'Cardiac event from gear use.';
+      state.vitality = 0;
+    }
+  } else if (state.gearYears > 0) {
+    // Residual risk even after stopping
+    state.gearYears = Math.max(0, state.gearYears - 0.3);
+  }
+
+  // Habit-related death risk — accumulated damage from stacked bad habits
+  if (totalDeathRisk > 0 && !state.died) {
+    const ageMult = state.age > 50 ? 1 + (state.age - 50) / 30 : 1;
+    if (Math.random() < totalDeathRisk * ageMult) {
+      state.died = true;
+      state.vitality = 0;
+      // Attribute the cause to the habit with the highest individual risk
+      const topHabit = activeHabits.slice().sort((a, b) => (b.deathRisk || 0) - (a.deathRisk || 0))[0];
+      const causeByHabit = {
+        smoke: 'Lung cancer. Pack-a-day caught up at age ' + Math.round(state.age) + '.',
+        drink: 'Liver failure. Decades of daily drinking.',
+        party: 'Party-life accident. Late nights, bad choices.',
+        workaholic: 'Stroke from chronic stress. 70-hour weeks since 20.',
+        weed: 'Cardiac event. Decades of daily use.',
+      };
+      state.diedCause = topHabit ? (causeByHabit[topHabit.id] || 'Habit-related illness.') : 'Habit-related illness.';
+      if (activeHabits.length > 1) state.diedCause += ' (' + activeHabits.length + ' stacked habits.)';
+    }
+  }
+
+  // Natural-cause death if vitality reaches 0
+  if (state.vitality <= 0 && !state.died) {
+    state.died = true;
+    state.vitality = 0;
+    state.diedCause = state.bodyFatPct > 30
+      ? 'Metabolic syndrome. Decades of poor diet.'
+      : state.sleep === 'poor'
+        ? 'Chronic sleep deprivation. Body gave out.'
+        : 'Age-related decline. Habits weren\'t enough.';
+  }
+
+  // Perfect-execution tracker (unlocks FFMI 25 for balanced training over 10 clean years)
+  const perfectThisYear =
+    state.training === 'balanced' &&
+    state.diet === 'clean' &&
+    state.sleep === 'good' &&
+    (state.habits || []).length === 0 &&
+    state.gear === 'none';
+  if (perfectThisYear) state.perfectYears = (state.perfectYears || 0) + 1;
+
+  // Push to history + update aggregate counters
+  const curF = ffmi(state.lbm);
+  const curA = attractiveness(curF, state.bodyFatPct);
+  if (curA >= 90) state.yearsAtPeak = (state.yearsAtPeak || 0) + 1;
+  if (curA >= 75) state.yearsMagnetic = (state.yearsMagnetic || 0) + 1;
+  if (curA >= 55) state.yearsAttracting = (state.yearsAttracting || 0) + 1;
+  if (curA > (state.peakAttr || 0)) state.peakAttr = curA;
+  if (curF > (state.peakFfmi || 0)) state.peakFfmi = curF;
+  state.history.push({
+    age: state.age,
+    ffmi: curF,
+    vitality: Math.max(0, state.vitality),
+    attractiveness: curA,
+  });
+  if (state.history.length > 500) state.history = state.history.filter((_, i) => i % 2 === 0);
+
+  saveState();
+  render();
+  tickEl.classList.add('on');
+  setTimeout(() => tickEl.classList.remove('on'), Math.min(140, TICK_MS / (state.speed || 1) * 0.6));
+}
+
+document.querySelectorAll('#speed button').forEach(b => {
+  b.onclick = () => setSpeed(+b.dataset.speed);
+});
+
+restartTick();
+renderSpeedButtons();
+render();
+</script>
+</body>
+</html>
